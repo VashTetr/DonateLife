@@ -1,0 +1,23 @@
+@if(Visible)
+{
+<dialog open>
+    <article class="container" style="position: absolute; padding: 8px;">
+        <label>Bezeichnung</label>
+        <input @bind="@ModelClass.Name">
+        <label>Zeitraum</label>
+        <Dropdown 
+            T="GradingPeriod"
+            DataSource="@(ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>().GetAll<GradingPeriod>())"
+            OnSelect="@((p) => { ModelClass.GradingPeriodId = p.Id; ModelClass.GradingPeriod = p; })">
+                <ChildContent Context="Item">@Item.Bezeichnung</ChildContent>
+        </Dropdown>
+        <button @onclick="@(() => @OnSubmitClass(ModelClass))">Speichern</button>
+    </article>
+</dialog>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public required Class ModelClass { get; set; }
+    [Parameter] public Action<Class> OnSubmitClass { get; set; } = (_) => {};
+}

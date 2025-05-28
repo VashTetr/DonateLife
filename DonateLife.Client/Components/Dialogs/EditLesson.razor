@@ -1,0 +1,37 @@
+@if(Visible)
+{
+<dialog open>
+    <article class="container" style="position: absolute; padding: 8px;">
+        <header><strong>Note Bearbeiten</strong></header>
+        <form>
+            <label>Datum</label>
+            <input type="date" @bind="@ModelLesson.Date">
+        </form>
+        <div style="display: flex;">
+            <button @onclick="submit">Bestätigen</button>
+            <button @onclick="cancel">Abbrechen</button>
+        </div>
+    </article>
+</dialog>
+}
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public Lesson ModelLesson { get; set; }
+
+    [Parameter]
+    public Action<Lesson> OnSubmit { get; set; }
+
+    private void submit() 
+    {
+        Visible = false;
+        if (OnSubmit is null) { return; }
+        OnSubmit(ModelLesson);
+    }
+    private void cancel()
+    {
+        Visible = false;
+    }
+}

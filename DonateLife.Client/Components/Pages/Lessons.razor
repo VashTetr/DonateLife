@@ -1,0 +1,85 @@
+@page "/lessons"
+
+<h1>Unterrichtsstunden</h1>
+
+<EditLesson Visible="@showEditLesson" ModelLesson="editLessonModel" OnSubmit="editLessonSubmit"></EditLesson>
+
+<div style="display: flex; flex-direction: column;">
+    <div class="grid">
+        <details class="dropdown" aria-busy="@(classes == null)">
+            <summary>@(selectedClass?.Name ?? "Klasse auswählen")</summary>
+            <ul>
+            @if(classes != null)
+            @foreach(var c in classes)
+            {
+                <li><a href="#" @onclick="() => onClassSelect(c)" @onclick:preventDefault="true">@c.Name</a></li>
+            }
+            </ul>
+        </details>
+        <button @onclick="editLesson">Stunde planen</button>
+    </div>
+
+    @foreach(var l in lessons)
+    {
+        <article>
+            <form>
+                <fieldset class="grid">
+                    <p>Datum</p><p>@l.Date</p>
+                </fieldset>
+                <fieldset class="grid">
+                    <p>Klasse</p><p>@l.Class.Name</p>
+                </fieldset>
+            </form>
+            <div class="grid">
+                <button>Löschen</button><a href="#">Noten vergeben</a>
+            </div>
+        </article>
+    }
+</div>
+
+@code {
+    private IEnumerable<Class>? classes;
+    private Class? selectedClass;
+    private IEnumerable<Lesson> lessons = [];
+    private bool showEditLesson = false;
+    private Lesson? editLessonModel;
+
+    private DonateLifeCache _cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    private IUserAPI _userAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>();
+    private IClassAPI _classAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IClassAPI>();
+    private ILessonAPI _lessonAPI = ClientDependencyLayer.DependencyLayer.GetDependency<ILessonAPI>();
+    protected override async Task OnInitializedAsync()
+    {
+        var thisUser = _cache.CurrentUser;
+        classes = from classes in _cache.GetAll<Class>()
+            join tcr in _cache.GetAll<TeacherClassRelation>() on classes.Id equals tcr.ClassId
+            where tcr.TeacherId == thisUser.PersonId
+            select classes;
+    }
+
+    private void onClassSelect(Class c)
+    {
+        selectedClass = c;
+        lessons = from lesson in _cache.GetAll<Lesson>()
+            where lesson.ClassId == c.Id
+            select lesson;
+
+        foreach(var lesson in lessons)
+        {
+            lesson.Class = _cache.Get<Class>(lesson.ClassId);
+        }
+    }
+
+    private void editLesson()
+    {
+        editLessonModel = new();
+        editLessonModel.Class = selectedClass;
+        showEditLesson = true;
+    }
+    private void editLessonSubmit(Lesson lesson)
+    {
+        _lessonAPI.CreateLesson(lesson.Date, selectedClass.Id);
+        lessons = lessons.Prepend(lesson).ToList();
+        InvokeAsync(() => StateHasChanged());
+    }
+}

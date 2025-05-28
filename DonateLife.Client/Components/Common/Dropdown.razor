@@ -1,0 +1,33 @@
+@typeparam T
+
+<details class="dropdown">
+    <summary>
+        @if (SelectedValue is null)
+        {
+            @EmptyText;
+        } else {
+            @ChildContent(SelectedValue)
+        }
+    </summary>
+    <ul>
+        @foreach(var x in DataSource)
+        {
+        <li><a href="#" @onclick="() => OnElementSelected(x)" @onclick:preventDefault="true">@ChildContent(x)</a></li>
+        }
+    </ul>
+</details>
+
+@code {
+    [Parameter] public IEnumerable<T> DataSource { get; set; } = [];
+    [Parameter] public Action<T> OnSelect { get; set; } = (_) => {};
+    [Parameter] public RenderFragment<T> ChildContent { get; set; }
+    [Parameter] public string EmptyText { get; set; } = "Auswählen";
+
+    [Parameter] public T? SelectedValue { get; set; }
+
+    void OnElementSelected(T t)
+    {
+        SelectedValue = t;
+        OnSelect(t);
+    }
+}

@@ -1,0 +1,28 @@
+@using Blazored.Toast.Services;
+@inherits ErrorBoundary;
+@inject IToastService toaster;
+@inject NavigationManager navManager;
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else if (ErrorContent is not null)
+{
+    @ErrorContent(CurrentException)
+}
+
+@code {
+    protected override Task OnErrorAsync(Exception ex)
+    {
+        if ((ex is HttpRequestException) || (ex is AggregateException aggEx && aggEx.InnerException is HttpRequestException))
+        {
+            toaster.ShowError("Verbindung zum Server fehlgeschlagen");
+        }
+        else {
+            toaster.ShowError(ex.Message);
+        }
+        navManager.LocationChanged += (_, _) => navManager.Refresh();
+        return Task.CompletedTask;
+    }
+}

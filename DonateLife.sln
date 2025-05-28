@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonateLife.Client", "DonateLife.Client\DonateLife.Client.csproj", "{682FA934-6157-4A38-BECD-F7CCE34F5D33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonateLife.Infrastructure", "DonateLife.Infrastructure\DonateLife.Infrastructure.csproj", "{7E8A1CB5-8144-4C4D-8F0C-9657C27AFB32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonateLife.Web", "DonateLife.Web\DonateLife.Web.csproj", "{AA406829-3EF8-4651-AFBE-F47A3A1AA215}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonateLife.Common", "DonateLife.Common\DonateLife.Common.csproj", "{4A54D85E-B357-4706-9696-9DBD525E33F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonateLife.DependencyInjection", "DonateLife.DependencyInjection\DonateLife.DependencyInjection.csproj", "{A6CD0647-70C8-40D9-91A8-6F2DC205457E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{682FA934-6157-4A38-BECD-F7CCE34F5D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{682FA934-6157-4A38-BECD-F7CCE34F5D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{682FA934-6157-4A38-BECD-F7CCE34F5D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{682FA934-6157-4A38-BECD-F7CCE34F5D33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E8A1CB5-8144-4C4D-8F0C-9657C27AFB32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E8A1CB5-8144-4C4D-8F0C-9657C27AFB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E8A1CB5-8144-4C4D-8F0C-9657C27AFB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E8A1CB5-8144-4C4D-8F0C-9657C27AFB32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA406829-3EF8-4651-AFBE-F47A3A1AA215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA406829-3EF8-4651-AFBE-F47A3A1AA215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA406829-3EF8-4651-AFBE-F47A3A1AA215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA406829-3EF8-4651-AFBE-F47A3A1AA215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A54D85E-B357-4706-9696-9DBD525E33F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A54D85E-B357-4706-9696-9DBD525E33F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A54D85E-B357-4706-9696-9DBD525E33F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A54D85E-B357-4706-9696-9DBD525E33F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6CD0647-70C8-40D9-91A8-6F2DC205457E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6CD0647-70C8-40D9-91A8-6F2DC205457E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6CD0647-70C8-40D9-91A8-6F2DC205457E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6CD0647-70C8-40D9-91A8-6F2DC205457E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

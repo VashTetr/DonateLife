@@ -1,0 +1,62 @@
+@if(Visible)
+{
+<dialog open>
+    <article class="container" style="position: absolute; padding: 8px;">
+        <header><strong>Note Bearbeiten</strong></header>
+        <form>
+            <label>Note</label>
+            <input type="number" min="0" max="100" @bind="@ModelGrade.Value">
+            <label>Stunde</label>
+            <input @bind="@ModelGrade.Lesson.Date">
+            <label>Schüler*in</label>
+            @if(ShowStudenDropdown)
+            {
+            <details class="dropdown">
+                <summary>@(@ModelGrade.Student?.LastName ?? "Schüler*in auswählen")</summary>
+                <ul>
+                @foreach(var s in Students)
+                {
+                    <li><a href="#" @onclick="() => onStudentSelect(s)" @onclick:preventDefault="true">@s.FirstName @s.LastName</a></li>
+                }
+                </ul>
+            </details>
+            }
+        </form>
+        <div style="display: flex;">
+            <button @onclick="submit">Bestätigen</button>
+            <button @onclick="cancel">Abbrechen</button>
+        </div>
+    </article>
+</dialog>
+}
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public bool ShowStudenDropdown { get; set; }
+    [Parameter]
+    public required Grade ModelGrade { get; set; }
+
+    [Parameter]
+    public Action<Grade?> OnSubmit { get; set; } = (_) => {};
+
+    [Parameter]
+    public IEnumerable<Person> Students { get; set; } = [];
+    
+    private void onStudentSelect(Person s)
+    {
+        ModelGrade.Student = s;
+        ModelGrade.StudentId = s.Id;
+    }
+    private void submit() 
+    {
+        if (OnSubmit is null) { return; }
+        OnSubmit(ModelGrade);
+        Visible = false;
+    }
+    private void cancel()
+    {
+        Visible = false;
+    }
+}

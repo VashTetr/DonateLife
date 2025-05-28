@@ -1,0 +1,41 @@
+@if(Visible)
+{
+<dialog>
+    <article class="container" style="position: absolute; width: 60% padding: 8px;">
+        <header><strong>Benutzer Bearbeiten</strong></header>
+        <form style="width: 90%">
+            <label>Vorname</label>
+            <input @bind="ModelPerson.FirstName">
+            <label>Nachname</label>
+            <input @bind="ModelPerson.LastName">
+            <label>E-Mail</label>
+            <input @bind="ModelPerson.EMail">
+            <div style="display: flex;">
+                <button @onclick="submit">Bestätigen</button>
+                <button @onclick="submit">Abbrechen</button>
+            </div>
+        </form>
+    </article>
+</dialog>
+}
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public Person ModelPerson { get; set; }
+    [Parameter]
+    public Action<Person?> OnSubmit { get; set; }
+
+    private void submit()
+    {
+        ModelPerson.User = new();
+        ModelPerson.Grades = [];
+        OnSubmit(ModelPerson);
+    }
+
+    private void cancel()
+    {
+        OnSubmit(null);
+    }
+}

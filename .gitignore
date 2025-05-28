@@ -1,0 +1,11 @@
+.vscode
+DonateLife.Client/bin/
+DonateLife.Client/obj/
+DonateLife.Web/bin/
+DonateLife.Web/obj/
+DonateLife.Infrastructure/bin/
+DonateLife.Infrastructure/obj/
+DonateLife.DependencyInjection/bin/
+DonateLife.DependencyInjection/obj/
+DonateLife.Client/bin/
+DonateLife.Client/obj/

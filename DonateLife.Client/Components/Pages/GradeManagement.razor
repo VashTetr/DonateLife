@@ -1,0 +1,146 @@
+@page "/grademanagement"
+
+<h1>Notenvergabe</h1>
+
+@if(selectedClass != null && selectedLesson != null) 
+{
+<EditGrade Visible="@showEditGrade" ModelGrade="editGradeModel" OnSubmit="addGradeSubmit" ShowStudenDropdown="true" Students="selectedLesson.Students"></EditGrade>
+}
+
+<div style="display: flex; flex-direction: column;">
+    <div style="display: flex; flex-direction: row;">
+        <details class="dropdown">
+            <summary>@(selectedClass?.Name ?? "Klasse auswählen")</summary>
+            <ul>
+            @if(classes != null)
+            @foreach(var c in classes)
+            {
+                <li><a href="#" @onclick="() => onClassSelect(c)" @onclick:preventDefault="true">@c.Name</a></li>
+            }
+            </ul>
+        </details>
+        <details class="dropdown">
+            <summary>@(selectedLesson?.Date.ToString() ?? "Stunde auswählen")</summary>
+            <ul>
+            @if(classes != null)
+            @foreach(var l in lessons)
+            {
+                <li><a href="#" @onclick="() => onLessonSelect(l)" @onclick:preventDefault="true">@l.Date</a></li>
+            }
+            </ul>
+        </details>
+        <button @onclick="addGrade">Note vergeben</button>
+    </div>
+
+    @foreach(var g in grades)
+    {
+        <article>
+            <form>
+                @if(g.IsFinal)
+                {
+                <p>(Final)</p>
+                }
+                <fieldset class="grid">
+                    <p>Schüler*in</p><p>@g.Student?.FirstName @g.Student?.LastName</p>
+                </fieldset>
+                <fieldset class="grid">
+                    <p>Erstellt von</p><p>@g.Creator?.FirstName @g.Creator?.LastName</p>
+                </fieldset>
+                <fieldset class="grid">
+                    <p>Wert</p><p>@g.Value</p>
+                </fieldset>
+            </form>
+            <div class="grid">
+                <button @onclick="() => addGrade()">Bearbeiten</button>
+                <button @onclick="() => acceptGrade(g)">Akzeptieren</button><div></div>
+            </div>
+        </article>
+    }
+</div>
+
+@code {
+    private IEnumerable<Class> classes = [];
+    private IEnumerable<Lesson> lessons = [];
+    private IEnumerable<Grade> grades = [];
+    private Class? selectedClass;
+    private Lesson? selectedLesson;
+    private bool showEditGrade = false;
+    private Grade? editGradeModel;
+
+    private DonateLifeCache _cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    private IUserAPI _userAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>();
+    private IClassAPI _classAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IClassAPI>();
+    private ILessonAPI _lessonAPI = ClientDependencyLayer.DependencyLayer.GetDependency<ILessonAPI>();
+    private IGradeAPI _gradeAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IGradeAPI>();
+    protected override async Task OnInitializedAsync()
+    {
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        var thisUser = _cache.CurrentUser;
+        classes = from classes in _cache.GetAll<Class>()
+            join tcr in _cache.GetAll<TeacherClassRelation>() on classes.Id equals tcr.ClassId
+            where tcr.TeacherId == thisUser.PersonId
+            select classes;
+    }
+
+    private void onClassSelect(Class c)
+    {
+        selectedClass = c;
+        lessons = from lesson in _cache.GetAll<Lesson>()
+            where lesson.ClassId == c.Id
+            select lesson;
+
+        foreach(var lesson in lessons)
+        {
+            lesson.Class = _cache.Get<Class>(lesson.ClassId);
+        }
+    }
+
+    private void onLessonSelect(Lesson l)
+    {
+        selectedLesson = l;
+        selectedLesson.Students = from person in _cache.GetAll<Person>()
+            join scr in _cache.GetAll<StudentClassRelation>() on person.Id equals scr.StudentId
+            join _class in _cache.GetAll<Class>() on scr.ClassId equals _class.Id
+            join lesson in _cache.GetAll<Lesson>() on _class.Id equals lesson.ClassId
+            where lesson.Id == l.Id
+            select person;
+
+        grades = from grade in _cache.GetAll<Grade>()
+            join lesson in _cache.GetAll<Lesson>() on grade.LessonId equals lesson.Id
+            where lesson.Id == l.Id
+            orderby -grade.Id
+            select grade;
+
+        foreach (var g in grades)
+        {
+            g.Student = _cache.Get<Person>(g.StudentId);
+            g.Creator = _cache.Get<Person>(g.CreatorId);
+        }
+    }
+
+    private void addGrade()
+    {
+        editGradeModel = new();
+        editGradeModel.Lesson = selectedLesson;
+        editGradeModel.LessonId = selectedLesson.Id;
+        showEditGrade = true;
+    }
+    
+    private void acceptGrade(Grade grade)
+    {
+        _gradeAPI.FinalizeGrade(grade.Id);
+        grade.IsFinal = true;
+        Refresh();
+    }
+
+    private async void addGradeSubmit(Grade grade)
+    {
+       await  _gradeAPI.AddGrade(grade.StudentId, grade.LessonId, grade.Value);
+        onLessonSelect(grade.Lesson); // reload
+        Refresh();
+    }
+}

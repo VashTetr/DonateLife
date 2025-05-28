@@ -1,0 +1,11 @@
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\bin\Any CPU\Debug\net9.0\DonateLife.Common.deps.json
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\bin\Any CPU\Debug\net9.0\DonateLife.Common.dll
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\bin\Any CPU\Debug\net9.0\DonateLife.Common.pdb
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.AssemblyInfoInputs.cache
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.AssemblyInfo.cs
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.csproj.CoreCompileInputs.cache
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.dll
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\refint\DonateLife.Common.dll
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\DonateLife.Common.pdb
+c:\Users\StephenDingerkus\Desktop\Berufsschule\DonateLife\source\DonateLife.Common\obj\Any CPU\Debug\net9.0\ref\DonateLife.Common.dll

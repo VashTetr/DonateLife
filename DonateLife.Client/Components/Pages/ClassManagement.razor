@@ -1,0 +1,127 @@
+@page "/classmanagement"
+
+<div style="display: flex; flex-direction: column;">
+    <div style="display: flex; flex-direction: row;">
+        <details class="dropdown">
+            <summary>@(selectedClass?.Name ?? "Klasse auswählen")</summary>
+            <ul>
+            @if(classes != null)
+            @foreach(var c in classes)
+            {
+                <li><a href="#" @onclick="() => onClassSelect(c)" @onclick:preventDefault="true">@c.Name</a></li>
+            }
+            </ul>
+        </details>
+        <p><button @onclick="@(() => ShowClassEdit = true)">Neue Klasse erstellen</button></p>
+        <EditClass Visible="@ShowClassEdit" ModelClass="@new()" OnSubmitClass="@onClassCreate"></EditClass>
+    </div>
+        <div style="display: flex; flex-direction: row;">
+            <p><button @onclick="@(() => ShowSelectStudent = true)" class="outline">Schüler*in Hinzufügen</button></p>
+            <p><button @onclick="@(() => ShowSelectTeacher = true)" class="outline">Lehrer*in Hinzufügen</button></p>
+        </div>
+        <SelectPerson Visible="@ShowSelectStudent" OnSubmit="@addStudent" Data="@persons"></SelectPerson>
+        <SelectPerson Visible="@ShowSelectTeacher" OnSubmit="@addTeacher" Data="@persons"></SelectPerson>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Vorname</th>
+                    <th>Nachname</th>
+                    <th>Rolle</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var teacher in teachers)
+                {
+                    <tr>
+                        <td>@teacher.FirstName</td>
+                        <td>@teacher.LastName</td>
+                        <td>Lehrer*in</td>
+                        <td><button @onclick="() => removeTeacher(teacher)">Entfernen</button></td>
+                    </tr>
+                }
+                @foreach (var student in students)
+                {
+                    <tr>
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>Schüler*in</td>
+                        <td><button @onclick="() => removeStudent(student)">Entfernen</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+</div>
+@code {
+    private IEnumerable<Class> classes = [];
+    private IEnumerable<Person> students = [];
+    private IEnumerable<Person> teachers = [];
+    private Class? selectedClass;
+    private DonateLifeCache _cache = ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    IClassAPI _classApi = ClientDependencyLayer.DependencyLayer.GetDependency<IClassAPI>();
+    private IEnumerable<Person> persons => _cache.GetAll<Person>();
+    private bool showSelectPerson { get; set; }
+    private bool ShowClassEdit { get; set; }
+    private bool ShowSelectStudent { get; set; }
+    private bool ShowSelectTeacher { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        var thisUser = _cache.CurrentUser;
+        classes = from person in _cache.GetAll<Person>()
+            join tcr in _cache.GetAll<TeacherClassRelation>() on person.Id equals tcr.TeacherId
+            where person.Id == tcr.TeacherId
+            join _class in _cache.GetAll<Class>() on tcr.ClassId equals _class.Id
+            select _class;
+        
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void onClassSelect(Class c)
+    {
+        selectedClass = c;
+        students = from person in _cache.GetAll<Person>()
+            join scr in _cache.GetAll<StudentClassRelation>() on person.Id equals scr.StudentId
+            where scr.ClassId == c.Id
+            select person;
+    }
+
+    private void onClassCreate(Class c)
+    {
+        ShowClassEdit = false;
+        _classApi.CreateClass(c.Name);
+
+        Refresh();
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private void addStudent(Person student)
+    {
+        _classApi.AddStudentToClass(student.Id, selectedClass.Id);
+        ShowSelectStudent = false;
+        Refresh();
+    }
+
+    private void addTeacher(Person teacher)
+    {
+        _classApi.AddTeacherToClass(teacher.Id, selectedClass.Id);
+        ShowSelectTeacher = false;
+        Refresh();
+    }
+
+    private void removeStudent(Person student)
+    {
+        _classApi.RemoveStudent(student.Id, selectedClass.Id);
+        Refresh();
+    }
+    
+    private void removeTeacher(Person teacher)
+    {
+        _classApi.RemoveTeacher(teacher.Id, selectedClass.Id);
+        Refresh();
+    }
+}

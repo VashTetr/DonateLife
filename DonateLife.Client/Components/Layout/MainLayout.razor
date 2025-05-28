@@ -1,0 +1,57 @@
+﻿@using DonateLife.Client.Network
+@using Blazored.Toast.Services
+@inherits LayoutComponentBase
+@inject IToastService toaster
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <Blazored.Toast.BlazoredToasts></Blazored.Toast.BlazoredToasts>
+        @if(_onlineChecker.Status == ECheckResult.NotLoggedIn) {
+        <div style="height: 100%; width: 100%;">
+            <article>
+                <h1>Loggen Sie sich ein, um diese Seite zu benutzen.</h1>
+            </article>
+            <article style="margin: auto;">
+                <DonateLife.Client.Components.Pages.Login></DonateLife.Client.Components.Pages.Login>
+            </article>
+        </div>
+        } else {
+        <div style="display: flex; flex-direction: row; justify-content: space-evenly;">
+            <div>
+                @* Left side *@
+
+            </div>
+            <div>
+                @* Middle *@
+                <div>Wilkommen, @_cache.CurrentUser.Person.FirstName @_cache.CurrentUser.Person.LastName</div>
+            </div>
+            <div>
+                @* Right side *@
+                <a style="margin-right: 8px;" href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                @if(!(_onlineChecker.Status == ECheckResult.Online || _onlineChecker.Status == ECheckResult.NotLoggedIn)) {
+                <img style="height: 20px; margin-right: 8px;" src="img/offline-internet-icon.webp"/>
+                }
+            </div>
+        </div>
+
+        <article class="content px-4">
+            <ProcessException>
+                @Body
+            </ProcessException>
+        </article>
+        }
+    </main>
+</div>
+
+@code {
+    DonateLifeCache _cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    OnlineChecker _onlineChecker => ClientDependencyLayer.DependencyLayer.GetDependency<OnlineChecker>();
+    protected override void OnInitialized()
+    {
+        ClientDependencyLayer.DependencyLayer.AddOrRefreshDependency(toaster);
+    }
+}

@@ -1,0 +1,31 @@
+@using DonateLife.Core.Entities;
+
+@if (Visible)
+{
+<dialog open>
+    <details class="dropdown">
+        <summary>@(selectedItem?.LastName ?? "auswählen")</summary>
+        <ul>
+        @foreach(var d in Data)
+        {
+            <li><a href="#" @onclick="() => onSelect(d)" @onclick:preventDefault="true">@d.FirstName @d.LastName</a></li>
+        }
+        </ul>
+    </details>
+    @if (selectedItem != null)
+    {
+    <button @onclick="@(() => @OnSubmit(selectedItem))">Speichern</button>
+    }
+</dialog>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public IEnumerable<Person> Data { get; set; }
+    [Parameter] public Action<Person> OnSubmit { get; set; }
+    private Person selectedItem;
+    private void onSelect(Person person)
+    {
+        selectedItem = person;
+    }
+}

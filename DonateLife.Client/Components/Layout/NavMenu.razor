@@ -1,0 +1,47 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">DonateLife.Client</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav style="display: flex; flex-direction: column;">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Anmelden
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="mygrades">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Meine Noten
+            </NavLink>
+        </div>
+        @* <div class="nav-item px-3">
+            <NavLink class="nav-link" href="admin">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Administration
+            </NavLink>
+        </div> *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="lessons">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Unterrichtsstunden
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="grademanagement">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Notenvergabe
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="classmanagement">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Klassenverwaltung
+            </NavLink>
+        </div>
+    </nav>
+</div>

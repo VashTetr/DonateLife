@@ -1,0 +1,49 @@
+﻿@page "/admin"
+
+<h1>Administration</h1>
+
+<div style="display: flex; flex-direction: column;">
+    <h2>Benutzer</h2>
+    <button @onclick="@(() => showEditUser = true)">Hinzufügen</button>
+    <div style="overflow: scroll; height: 80%;"></div>
+    <EditUser ModelPerson="EditPersonState" OnSubmit="onAddNewUser" Visible="showEditUser"></EditUser>
+    
+    @foreach (var person in persons)
+    {
+        <article>
+            <label>Vorname</label>
+            <div id="firstname">@person.FirstName</div>
+            <label>Nachname</label>
+            <div id="lastname">@person.LastName</div>
+        </article>
+    }
+</div>
+
+@code {
+    private IEnumerable<Person> persons = [];
+
+    private DonateLifeCache _cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    private IUserAPI _userApi => ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>();
+    private IGradeAPI _gradeApi => ClientDependencyLayer.DependencyLayer.GetDependency<IGradeAPI>();
+    protected override async Task OnInitializedAsync()
+    {
+        var thisUser = _cache.CurrentUser;
+        persons = _cache.GetAll<Person>();
+    }
+
+    private bool showEditUser { get; set; }
+
+    public User EditUserState = new User();
+    public Person EditPersonState = new Person();
+
+    private readonly IUserAPI userAPI = ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>();
+    private void onAddNewUser(Person? person)
+    {
+        userAPI.CreatePerson(person.FirstName, person.LastName, person.EMail);
+    }
+
+    private void emailTeacher()
+    {
+        // which one?
+    }
+}

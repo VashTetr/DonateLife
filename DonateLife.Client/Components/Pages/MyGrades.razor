@@ -1,0 +1,65 @@
+﻿@page "/mygrades"
+
+<h1>Meine Noten</h1>
+<EditGrade ModelGrade="editGradeModel" Visible="showEditGrade" OnSubmit="editGradeSubmit"></EditGrade>
+
+<div aria-busy="@(grades == null)">
+@if (grades != null)
+@foreach (var grade in grades)
+{
+    <article>
+        <div>@grade.Lesson.Date</div>
+        <div>@grade.Creator?.FirstName @grade.Creator?.LastName vergab @grade.Value an Sie.</div>
+        <div>
+            <button class="outline" style="padding: 8px; font-size: medium;" @onclick="() => editGrade(grade)">Bearbeiten</button>
+            <button class="outline secondary" style="padding: 8px; font-size: medium;">Details</button>
+            <a style="font-size: medium;" href="mailto:@grade.Creator?.EMail">Send email</a>
+        </div>
+    </article>
+}
+</div>
+
+@code {
+    private IEnumerable<Grade>? grades;
+    private Grade? editGradeModel;
+    private DonateLifeCache _cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>();
+    private IUserAPI _userApi => ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>();
+    private IGradeAPI _gradeApi => ClientDependencyLayer.DependencyLayer.GetDependency<IGradeAPI>();
+    protected override async Task OnInitializedAsync()
+    {
+        var thisUser = _cache.CurrentUser;
+        reloadGrades();
+    }
+
+    private void reloadGrades()
+    {
+        var user = _cache.CurrentUser;
+
+        grades = from grade in _cache.GetAll<Grade>()
+            where grade.StudentId == user.PersonId
+            orderby -grade.Id
+            select grade;
+
+        foreach (var g in grades)
+        {
+            g.Creator = _cache.Get<Person>(g.CreatorId);
+            g.Lesson = _cache.Get<Lesson>(g.LessonId);
+        }
+    }
+
+    private bool showEditGrade = false;
+    private void editGrade(Grade grade)
+    {
+        editGradeModel = grade.Clone();
+        showEditGrade = true;
+    }
+
+    private async void editGradeSubmit(Grade grade)
+    {
+        showEditGrade = false;
+        var newGrade = await _gradeApi.UpdateGradeValue(grade.Id, grade.Value);
+        grades = grades.Prepend(grade).ToList();
+        await InvokeAsync(() => StateHasChanged());
+        await _cache.Refresh<Grade>(grade.Id);
+    }
+}

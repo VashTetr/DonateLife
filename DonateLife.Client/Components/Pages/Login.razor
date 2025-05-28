@@ -1,0 +1,40 @@
+@page "/login"
+@using DonateLife.Client.Network
+@inject NavigationManager _navigationManager
+<h1> Login </h1>
+<div>
+    <form>
+        <fieldset class="grid">
+            <p>E-Mail</p><input @bind="email" type="email">
+        </fieldset>
+        <fieldset class="grid">
+            <p>Passwort</p><input @bind="password" type="password">
+        </fieldset>
+        <fieldset>
+            <button @onclick="OnLogin" @onclick:preventDefault="true">Anmelden</button>
+        </fieldset>
+    </form>
+</div>
+
+@code {
+    public string email;
+    public string password;
+
+    private IAuthenticationAPI authenticationAPI => ClientDependencyLayer.DependencyLayer.GetDependency<IAuthenticationAPI>(); 
+    private IUserAPI userAPI => ClientDependencyLayer.DependencyLayer.GetDependency<IUserAPI>(); 
+    private DonateLifeCache cache => ClientDependencyLayer.DependencyLayer.GetDependency<DonateLifeCache>(); 
+    private OnlineChecker onlineChecker => ClientDependencyLayer.DependencyLayer.GetDependency<OnlineChecker>();
+    public void OnLogin()
+    {
+        byte[] passwordHash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(password));
+        string passwordHash64 = Convert.ToHexString(passwordHash);
+        
+        authenticationAPI.Login(email, passwordHash64).Wait();
+        var user = authenticationAPI.GetCurrentUser().Result;
+        
+        cache.CurrentUser = user;
+        onlineChecker.CheckNow();
+
+        _navigationManager.Refresh();
+    }
+}
