@@ -30,8 +30,8 @@ public class AccountController : DonateLifeController
 
     [HttpPost]
     [Route("/account/delete")]
-    public void DeleteAccount(Guid accound)
+    public void DeleteAccount(Guid account)
     {
-        
+
     }
 }

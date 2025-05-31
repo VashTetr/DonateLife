@@ -1,4 +1,6 @@
 .vscode
+DonateLife.Common/bin/
+DonateLife.Common/obj/
 DonateLife.Client/bin/
 DonateLife.Client/obj/
 DonateLife.Web/bin/
@@ -7,5 +9,3 @@ DonateLife.Infrastructure/bin/
 DonateLife.Infrastructure/obj/
 DonateLife.DependencyInjection/bin/
 DonateLife.DependencyInjection/obj/
-DonateLife.Client/bin/
-DonateLife.Client/obj/
