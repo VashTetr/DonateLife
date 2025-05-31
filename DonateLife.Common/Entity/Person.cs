@@ -8,4 +8,7 @@ public class Person : DBEntity
     public required string LastName { get; set; }
     public required string EMail { get; set; }
     public bool IsDeleted { get; set; } = false;
+
+	public int AccountID { get; set; }
+	public int PatientID { get; set; }
 }

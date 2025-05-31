@@ -10,10 +10,12 @@ public static class DataBaseModelConfiguration
     {
         modelBuilder.Entity<Person>()
             .HasOne(p => p.Account)
-            .WithOne();
+			.WithMany()
+			.HasForeignKey(p => p.AccountID);
         modelBuilder.Entity<Person>()
             .HasOne(p => p.Patient)
-            .WithOne();
+            .WithMany()
+			.HasForeignKey(p => p.PatientID);
         modelBuilder.Entity<Person>()
             .HasIndex(p => p.EMail)
             .IsUnique();

@@ -23,7 +23,7 @@ public class AccountController : DonateLifeController
 
     [HttpPost]
     [Route("/account/register")]
-    public Account CreateAccountAndPerson(CreateAccountOptions account, CreatePersonOptions person)
+    public Account CreateAccountAndPerson(CreateAccountAndPersonOptions options)
     {
         return null;
     }

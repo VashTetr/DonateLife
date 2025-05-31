@@ -49,7 +49,7 @@ public class Program
                 options.LoginPath = "/authentication/login";
             });
 
-        builder.Services.AddScoped<DataBase>();
+        builder.Services.AddSingleton<DataBase>();
         
         // builder.Services.AddExceptionHandlingPolicies(policies => {
         //     policies.For<NullReferenceException>()

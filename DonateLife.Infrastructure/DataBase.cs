@@ -26,12 +26,16 @@ public class DataBase : DbContext, IDataBase
             ExecuteSqlQuery(sql);
         }
 
+
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseLazyLoadingProxies();
+        // optionsBuilder.UseLazyLoadingProxies(); // TODO: consider whether to use this or not
+		optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=mydb;User Id=myuser;Password=mypassword;");
+		optionsBuilder.UseLowerCaseNamingConvention();
         base.OnConfiguring(optionsBuilder);
+		optionsBuilder.UseLowerCaseNamingConvention();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

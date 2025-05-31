@@ -17,14 +17,14 @@ public class AccountRepository : IAccountRepository
         _context.Add(account);
     }
 
-    public Account GetLogin(string email, string passwordHash)
+    public Account? GetLogin(string email, string passwordHash)
     {
-        return new Account(){ PasswordHash = "penis", Id = Guid.NewGuid(), Role = new() { Label = "balls", Id = Guid.NewGuid() } };
         return ( 
-            from person in _context.Set<Person>()
-            where person.EMail == email && person.Account != null && person.Account.PasswordHash == passwordHash
+            from person in _context.Set<Person>().AsQueryable()
+            join account in _context.Set<Account>().AsQueryable() on person.AccountID equals account.ID
+            where person.EMail == email && person.Account!.PasswordHash == passwordHash
             select person.Account
-        ).Single();
+        ).FirstOrDefault();
     }
 
     public Account GetAccount(string email)

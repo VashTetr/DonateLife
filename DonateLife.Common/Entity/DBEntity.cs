@@ -2,5 +2,5 @@ namespace DonateLife.Common.Entity;
 
 public abstract class DBEntity
 {
-    public Guid Id;
+    public int ID { get; set; }
 }
