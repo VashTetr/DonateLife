@@ -1,0 +1,103 @@
+-- Reference: ![image1](image1)
+
+CREATE TABLE ROLE (
+    ID SERIAL PRIMARY KEY,
+    Label VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE ACCOUNT (
+    ID SERIAL PRIMARY KEY,
+    RoleID INTEGER REFERENCES ROLE(ID),
+    PasswordHash VARCHAR(256) NOT NULL
+);
+
+CREATE TABLE PERSON (
+    ID SERIAL PRIMARY KEY,
+    PatientID INTEGER,
+    AccountID INTEGER REFERENCES ACCOUNT(ID),
+    Firstname VARCHAR(50),
+    Lastname VARCHAR(50),
+    EMail VARCHAR(100),
+    IsDeleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE LT_BLOODTYPE (
+    ID SERIAL PRIMARY KEY
+);
+
+CREATE TABLE PATIENT (
+    ID SERIAL PRIMARY KEY,
+    Bloodtype INTEGER REFERENCES LT_BLOODTYPE(ID),
+    Sex VARCHAR(10)
+);
+
+CREATE TABLE ILLNESS (
+    ID SERIAL PRIMARY KEY,
+    Label VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE PREV_ILLNESS (
+    ID SERIAL PRIMARY KEY,
+    PatientID INTEGER REFERENCES PATIENT(ID),
+    IllnessID INTEGER REFERENCES ILLNESS(ID),
+    Date DATE
+);
+
+CREATE TABLE CLINIC (
+    ID SERIAL PRIMARY KEY,
+    Label VARCHAR(100),
+    Address VARCHAR(255)
+);
+
+CREATE TABLE LT_ORGAN (
+    ID SERIAL PRIMARY KEY
+);
+
+CREATE TABLE ORGAN_OFFER (
+    ID SERIAL PRIMARY KEY,
+    ClinicID INTEGER REFERENCES CLINIC(ID),
+    OrganTypeID INTEGER REFERENCES LT_ORGAN(ID),
+    RecipientID INTEGER REFERENCES PERSON(ID),
+    AddedDate DATE,
+    RemovedDate DATE
+);
+
+CREATE TABLE ORGAN_REQUEST (
+    ID SERIAL PRIMARY KEY,
+    ClinicID INTEGER REFERENCES CLINIC(ID),
+    OrganTypeID INTEGER REFERENCES LT_ORGAN(ID),
+    PatientID INTEGER REFERENCES PATIENT(ID),
+    OrganOfferID INTEGER REFERENCES ORGAN_OFFER(ID),
+    AddedDate DATE,
+    RemovedDate DATE
+);
+
+-- Dummy data
+
+INSERT INTO ROLE (Label) VALUES ('Admin'), ('Doctor'), ('Nurse'), ('Patient');
+
+INSERT INTO ACCOUNT (RoleID, PasswordHash) VALUES
+(1, 'hash1'), (2, 'hash2'), (3, 'hash3'), (4, 'hash4');
+
+INSERT INTO LT_BLOODTYPE (ID) VALUES (1), (2), (3), (4);
+
+INSERT INTO PATIENT (Bloodtype, Sex) VALUES (1, 'M'), (2, 'F');
+
+INSERT INTO PERSON (PatientID, AccountID, Firstname, Lastname, EMail, IsDeleted)
+VALUES (1, 1, 'John', 'Doe', 'john@example.com', FALSE),
+       (2, 2, 'Jane', 'Smith', 'jane@example.com', FALSE);
+
+INSERT INTO ILLNESS (Label) VALUES ('Diabetes'), ('Hypertension');
+
+INSERT INTO PREV_ILLNESS (PatientID, IllnessID, Date)
+VALUES (1, 1, '2020-01-01'), (2, 2, '2021-06-15');
+
+INSERT INTO CLINIC (Label, Address) VALUES ('City Hospital', '123 Health St'), ('County Clinic', '456 Wellness Ave');
+
+INSERT INTO LT_ORGAN (ID) VALUES (1), (2);
+
+INSERT INTO ORGAN_OFFER (ClinicID, OrganTypeID, RecipientID, AddedDate, RemovedDate)
+VALUES (1, 1, 1, '2024-01-01', NULL);
+
+INSERT INTO ORGAN_REQUEST (ClinicID, OrganTypeID, PatientID, OrganOfferID, AddedDate, RemovedDate)
+VALUES (2, 2, 2, 1, '2024-02-01', NULL);
