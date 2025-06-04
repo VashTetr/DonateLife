@@ -16,14 +16,14 @@ public class AccountController : DonateLifeController
 
     [HttpPost]
     [Route("/account/create")]
-    public Account CreateAccount(CreateAccountOptions account)
+    public Account CreateAccount([FromForm]CreateAccountOptions account)
     {
         return null;
     }
 
     [HttpPost]
     [Route("/account/register")]
-    public Account CreateAccountAndPerson(CreateAccountAndPersonOptions options)
+    public Account CreateAccountAndPerson([FromForm]CreateAccountAndPersonOptions options)
     {
         return null;
     }
