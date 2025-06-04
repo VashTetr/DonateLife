@@ -10,11 +10,13 @@ public class PersonController : DonateLifeController
 {
     public PersonController(IAccountRepository accountRepository, IPersonRepository personRepository) : base(accountRepository, personRepository)
     {
-        [HttpPost]
-        [Route("/person/create")]
-        public Person CreatePerson([FromForm] CreatePersonOptions personOptions)
-        {
-            return null;
-        }
+        
+    }
+    
+    [HttpPost]
+    [Route("/person/create")]
+    public Person CreatePerson([FromForm] CreatePersonOptions personOptions)
+    {
+        return null;
     }
 }
