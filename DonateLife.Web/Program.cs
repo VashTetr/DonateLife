@@ -1,20 +1,6 @@
-﻿using Newtonsoft.Json;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using DonateLife.Infrastructure;
+﻿using DonateLife.Infrastructure;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.OpenApi;
-using System.Text.Json.Serialization.Metadata;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
-// using Microsoft.AspNetCore.Identity;
-// using Community.AspNetCore.ExceptionHandling;
-using System.Net;
-using System.Text;
 using DonateLife.DependencyInjection;
 
 namespace DonateLife.Web;
