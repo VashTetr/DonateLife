@@ -10,3 +10,4 @@ DonateLife.Infrastructure/obj/
 DonateLife.DependencyInjection/bin/
 DonateLife.DependencyInjection/obj/
 /.vs
+DonateLife.Web/Properties/launchSettings.json
