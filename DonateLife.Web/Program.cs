@@ -28,14 +28,13 @@ public class Program
 
         ConfigureDependencies.Configure(builder.Services);
         builder.Services.AddControllers();
+        builder.Services.AddRazorPages();
         builder.Services.AddMvc()
         .AddJsonOptions(
-            options => {
+            options =>
+            {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 options.JsonSerializerOptions.UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement;
-                // options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                // options.JsonSerializerOptions.PreferredObjectCreationHandling = JsonObjectCreationHandling.Replace;
-                // options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip;
             }
         );
 
@@ -50,30 +49,9 @@ public class Program
             });
 
         builder.Services.AddSingleton<DataBase>();
-        
-        // builder.Services.AddExceptionHandlingPolicies(policies => {
-        //     policies.For<NullReferenceException>()
-        //         .Response((_) => (int)HttpStatusCode.InternalServerError)
-        //         .Headers((settings, exception) => {})
-		// 		.WithBody((req, writer, exception) => {
-        //             byte[] array = Encoding.UTF8.GetBytes(exception.Message);
-        //             return writer.WriteAsync(array, 0, array.Length);
-        //         })
-        //         .Handled();
-
-        //     policies.For<Exception>()
-        //         .Response((_) => (int)HttpStatusCode.InternalServerError)
-		// 		.WithBody((req, writer, exception) => {
-        //             byte[] array = Encoding.UTF8.GetBytes(exception.Message);
-        //             return writer.WriteAsync(array, 0, array.Length);
-        //         })
-        //         .Handled();
-            
-        // });
 
         var app = builder.Build();
-        // app.UseExceptionHandlingPolicies();
-        
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();
@@ -87,6 +65,7 @@ public class Program
         app.UseAuthorization();
         app.UseAuthentication();
 
+        app.MapRazorPages();
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
