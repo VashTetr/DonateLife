@@ -1,0 +1,47 @@
+﻿.navbar .nav-link#userDropdown {
+    color: white !important;
+}
+
+.floating-alert {
+    position: fixed; /* Schwebend */
+    top: 20px; /* Abstand von oben */
+    left: 50%; /* Mitte des Bildschirms */
+    transform: translateX(-50%); /* Exakte Zentrierung */
+    z-index: 1050; /* Über allen anderen Elementen */
+    width: auto; /* Automatische Breite */
+    max-width: 90%; /* Optional: maximale Breite */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: leichter Schatten */
+}
+
+/* Patient-spezifische Stile */
+.patient-table .badge {
+    font-size: 0.75rem;
+}
+
+.patient-details-modal .modal-body h6 {
+    color: #0d6efd;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.organ-status-active {
+    color: #198754;
+    font-weight: bold;
+}
+
+.organ-status-inactive {
+    color: #6c757d;
+}
+
+.organ-match {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+}
+
+.patient-actions .btn {
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
