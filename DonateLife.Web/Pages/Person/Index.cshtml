@@ -1,0 +1,206 @@
+@page
+@model DonateLife.Web.Pages.Person.IndexModel
+@{
+    ViewData["Title"] = "Personen";
+    Layout = "_Layout";
+}
+
+<h2>Personen</h2>
+<p>Hier können Sie Personen verwalten.</p>
+
+<!-- Button zum Öffnen des Modal -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createModal">
+    Neue Person erstellen
+</button>
+
+<!-- Tabelle mit Personen -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">        <thead class="table-dark">
+            <tr>
+                <th scope="col">Vorname</th>
+                <th scope="col">Nachname</th>
+                <th scope="col">E-Mail</th>
+                <th scope="col">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in Model.Persons.Where(p => !p.IsDeleted))
+            {
+                <tr>
+                    <td>@person.Firstname</td>
+                    <td>@person.Lastname</td>
+                    <td>@person.EMail</td>
+                    <td>
+                        <!-- Informationen anzeigen -->
+                        <button type="button" class="btn btn-info btn-sm me-1" 
+                                data-bs-toggle="modal" data-bs-target="#infoModal"
+                                onclick="showInfo(@person.Id, '@person.Firstname', '@person.Lastname', '@person.EMail')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <!-- Bearbeiten -->
+                        <button type="button" class="btn btn-warning btn-sm me-1" 
+                                data-bs-toggle="modal" data-bs-target="#editModal"
+                                onclick="editPerson(@person.Id, '@person.Firstname', '@person.Lastname', '@person.EMail')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <!-- Löschen -->
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                onclick="deletePerson(@person.Id, '@person.FullName')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal für die Erstellung -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createModalLabel">Neue Person erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="CreatePerson">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="firstname" class="form-label">Vorname</label>
+                                <input type="text" class="form-control" id="firstname" asp-for="Firstname" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lastname" class="form-label">Nachname</label>
+                                <input type="text" class="form-control" id="lastname" asp-for="Lastname" required />
+                            </div>
+                        </div>
+                    </div>                    <div class="mb-3">
+                        <label for="email" class="form-label">E-Mail</label>
+                        <input type="email" class="form-control" id="email" asp-for="EMail" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Informationen anzeigen -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Person-Informationen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Vorname:</strong></div>
+                    <div class="col-sm-8" id="infoFirstname"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Nachname:</strong></div>
+                    <div class="col-sm-8" id="infoLastname"></div>
+                </div>                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>E-Mail:</strong></div>
+                    <div class="col-sm-8" id="infoEmail"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Bearbeitung -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Person bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="EditPerson">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="EditId" id="editIdField" />
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editFirstname" class="form-label">Vorname</label>
+                                <input type="text" class="form-control" id="editFirstname" asp-for="EditFirstname" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editLastname" class="form-label">Nachname</label>
+                                <input type="text" class="form-control" id="editLastname" asp-for="EditLastname" required />
+                            </div>
+                        </div>
+                    </div>                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">E-Mail</label>
+                        <input type="email" class="form-control" id="editEmail" asp-for="EditEMail" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Löschen -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Person löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="DeletePerson">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="DeleteId" id="deleteIdField" />
+                <div class="modal-body">
+                    <p>Sind Sie sicher, dass Sie die Person <strong id="deletePersonName"></strong> löschen möchten?</p>
+                    <p class="text-danger">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showInfo(id, firstname, lastname, email) {
+        document.getElementById('infoFirstname').textContent = firstname;
+        document.getElementById('infoLastname').textContent = lastname;
+        document.getElementById('infoEmail').textContent = email;
+    }
+
+    function editPerson(id, firstname, lastname, email) {
+        document.getElementById('editIdField').value = id;
+        document.getElementById('editFirstname').value = firstname;
+        document.getElementById('editLastname').value = lastname;
+        document.getElementById('editEmail').value = email;
+    }
+
+    function deletePerson(id, fullName) {
+        document.getElementById('deleteIdField').value = id;
+        document.getElementById('deletePersonName').textContent = fullName;
+    }
+</script>

@@ -1,0 +1,1207 @@
+@page
+@model DonateLife.Web.Pages.Patient.IndexModel
+@{
+    ViewData["Title"] = "Patienten";
+    Layout = "_Layout";
+}
+
+<h2>Patienten</h2>
+<p>Hier können Sie Patienten und deren Organspenden/Organanfragen verwalten.</p>
+
+<!-- Button zum Öffnen des Modal -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createPatientModal">
+    Neuen Patienten erstellen
+</button>
+
+<!-- Tabelle mit Patienten -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">E-Mail</th>
+                <th scope="col">Blutgruppe</th>
+                <th scope="col">Geschlecht</th>
+                <th scope="col">Organspenden</th>
+                <th scope="col">Organanfragen</th>
+                <th scope="col">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in Model.Patients)
+            {
+                <tr>
+                    <td>@patient.FullName</td>
+                    <td>@patient.EMail</td>
+                    <td>@patient.BloodtypeDisplay</td>
+                    <td>@patient.Sex</td>
+                    <td>
+                        <span class="badge bg-success me-1">@patient.OrganOffers.Count(o => o.IsActive)</span>
+                        <small class="text-muted">aktiv</small>
+                        @if (patient.OrganOffers.Any(o => !o.IsActive))
+                        {
+                            <br>
+                    
+                            <span class="badge bg-secondary me-1">@patient.OrganOffers.Count(o => !o.IsActive)</span>
+                            <small class="text-muted">entfernt</small>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge bg-primary me-1">@patient.OrganRequests.Count(r => r.IsActive)</span>
+                        <small class="text-muted">aktiv</small>
+                        @if (patient.OrganRequests.Any(r => r.HasMatch))
+                        {
+                            <br>
+                    
+                            <span class="badge bg-warning me-1">@patient.OrganRequests.Count(r => r.HasMatch)</span>
+                            <small class="text-muted">Match</small>
+                        }
+                    </td>
+                    <td>
+                        <!-- Details anzeigen -->
+                        <button type="button" class="btn btn-info btn-sm me-1" data-bs-toggle="modal"
+                            data-bs-target="#detailsModal"
+                            onclick="showPatientDetails(@patient.PatientId, '@patient.FullName', '@patient.EMail', '@patient.BloodtypeDisplay', '@patient.Sex')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <!-- Patient bearbeiten -->                        <button type="button" class="btn btn-warning btn-sm me-1" data-bs-toggle="modal"
+                            data-bs-target="#editPatientModal"
+                            onclick="editPatient(@patient.Id, '@patient.Firstname', '@patient.Lastname', '@patient.EMail', @patient.PatientId, @patient.BloodtypeId, @patient.SexId)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <!-- Patient löschen -->
+                        <button type="button" class="btn btn-danger btn-sm me-1" data-bs-toggle="modal"
+                            data-bs-target="#deletePatientModal" onclick="deletePatient(@patient.Id, '@patient.FullName')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <!-- Organspende hinzufügen -->
+                        <button type="button" class="btn btn-success btn-sm me-1" data-bs-toggle="modal"
+                            data-bs-target="#addOfferModal"
+                            onclick="prepareAddOffer(@patient.PatientId, '@patient.FullName')">
+                            <i class="fas fa-plus"></i> Spende
+                        </button>
+                        <!-- Organanfrage hinzufügen -->
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#addRequestModal"
+                            onclick="prepareAddRequest(@patient.PatientId, '@patient.FullName')">
+                            <i class="fas fa-plus"></i> Anfrage
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal für Patient Details -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Patient Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Name:</strong> <span id="detailName"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>E-Mail:</strong> <span id="detailEmail"></span>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <strong>Blutgruppe:</strong> <span id="detailBloodtype"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Geschlecht:</strong> <span id="detailSex"></span>
+                    </div>
+                </div>
+
+                <!-- Organspenden -->
+                <h6 class="fw-bold">Organspenden</h6>
+                <div class="border" id="organOffersContainer">
+                    <!-- Wird dynamisch befüllt -->
+                </div>                <!-- Organanfragen -->
+                <h6 class="mt-4 fw-bold">Organanfragen</h6>
+                <div class="border" id="organRequestsContainer">
+                    <!-- Wird dynamisch befüllt -->
+                </div>
+
+                <!-- Krankheiten -->
+                <h6 class="mt-4 fw-bold">Vorerkrankungen</h6>
+                <div class="border" id="illnessesContainer">
+                    <!-- Wird dynamisch befüllt -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für neue Organspende -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Neue Organspende hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="AddOrganOffer">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="SelectedPatientId" id="offerPatientId" />
+                <div class="modal-body">
+                    <p><strong>Patient:</strong> <span id="offerPatientName"></span></p>
+
+                    <div class="mb-3">
+                        <label for="newOfferClinic" class="form-label">Klinik</label>
+                        <select asp-for="NewOfferClinicId" id="newOfferClinic" class="form-select" required>
+                            <option value="">Bitte wählen...</option>
+                            @foreach (var clinic in Model.Clinics)
+                            {
+                                <option value="@clinic.Id">@clinic.Name - @clinic.Address</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newOfferOrgan" class="form-label">Organ</label>
+                        <select asp-for="NewOfferOrganType" id="newOfferOrgan" class="form-select" required>
+                            <option value="">Bitte wählen...</option>
+                            @foreach (var organ in Model.OrganTypes)
+                            {
+                                <option value="@organ.Id">@organ.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success">Hinzufügen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für neue Organanfrage -->
+<div class="modal fade" id="addRequestModal" tabindex="-1" aria-labelledby="addRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRequestModalLabel">Neue Organanfrage hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="AddOrganRequest">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="SelectedPatientId" id="requestPatientId" />
+                <div class="modal-body">
+                    <p><strong>Patient:</strong> <span id="requestPatientName"></span></p>
+
+                    <div class="mb-3">
+                        <label for="newRequestClinic" class="form-label">Klinik</label>
+                        <select asp-for="NewRequestClinicId" id="newRequestClinic" class="form-select" required>
+                            <option value="">Bitte wählen...</option>
+                            @foreach (var clinic in Model.Clinics)
+                            {
+                                <option value="@clinic.Id">@clinic.Name - @clinic.Address</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newRequestOrgan" class="form-label">Organ</label>
+                        <select asp-for="NewRequestOrganType" id="newRequestOrgan" class="form-select" required>
+                            <option value="">Bitte wählen...</option>
+                            @foreach (var organ in Model.OrganTypes)
+                            {
+                                <option value="@organ.Id">@organ.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Hinzufügen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Organspende entfernen -->
+<div class="modal fade" id="removeOfferModal" tabindex="-1" aria-labelledby="removeOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeOfferModalLabel">Organspende entfernen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="RemoveOrganOffer">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="RemoveOfferId" id="removeOfferIdField" />
+                <div class="modal-body">
+                    <p>Möchten Sie diese Organspende wirklich entfernen?</p>
+                    <p><strong>Details:</strong> <span id="removeOfferDetails"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Entfernen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Organanfrage entfernen -->
+<div class="modal fade" id="removeRequestModal" tabindex="-1" aria-labelledby="removeRequestModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeRequestModalLabel">Organanfrage entfernen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="RemoveOrganRequest">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="RemoveRequestId" id="removeRequestIdField" />
+                <div class="modal-body">
+                    <p>Möchten Sie diese Organanfrage wirklich entfernen?</p>
+                    <p><strong>Details:</strong> <span id="removeRequestDetails"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Entfernen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Krankheit hinzufügen -->
+<div class="modal fade" id="addIllnessModal" tabindex="-1" aria-labelledby="addIllnessModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addIllnessModalLabel">Vorerkrankung hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="modalIllnessSelect" class="form-label">Krankheit</label>
+                    <select class="form-select" id="modalIllnessSelect" required>
+                        <option value="">Bitte wählen...</option>
+                        @foreach (var illness in Model.Illnesses)
+                        {
+                            <option value="@illness.Id">@illness.Label</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="modalIllnessDate" class="form-label">Datum der Diagnose</label>
+                    <input type="date" class="form-control" id="modalIllnessDate" required />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="addIllnessFromModal()">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für gematchte Organ-Offer Details -->
+<div class="modal fade" id="matchedOfferModal" tabindex="-1" aria-labelledby="matchedOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="matchedOfferModalLabel">Gematchte Organspende</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle"></i> <strong>Match gefunden!</strong> 
+                    Es wurde eine passende Organspende für diese Anfrage gefunden.
+                </div>
+                
+                <h6>Details der gematchten Organspende:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Organ:</strong>
+                        <p id="matchedOfferOrganType" class="text-muted mb-2"></p>
+                        
+                        <strong>Klinik:</strong>
+                        <p id="matchedOfferClinicName" class="text-muted mb-2"></p>
+                        
+                        <strong>Spender:</strong>
+                        <p id="matchedOfferRecipientName" class="text-muted mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Hinzugefügt am:</strong>
+                        <p id="matchedOfferAddedDate" class="text-muted mb-2"></p>
+                        
+                        <strong>Status:</strong>
+                        <span id="matchedOfferStatus" class="badge"></span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>Details der Organanfrage:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Organ:</strong>
+                        <p id="matchedRequestOrganType" class="text-muted mb-2"></p>
+                        
+                        <strong>Klinik:</strong>
+                        <p id="matchedRequestClinicName" class="text-muted mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Angefragt am:</strong>
+                        <p id="matchedRequestAddedDate" class="text-muted mb-2"></p>
+                        
+                        <strong>Status:</strong>
+                        <span id="matchedRequestStatus" class="badge"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-success" onclick="proceedWithTransplant()">
+                    <i class="fas fa-heart"></i> Transplantation durchführen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPatientData = {};
+    let patientsData = [];
+
+    // Lade Patientendaten beim Seitenaufruf
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            // Verwende die neue GetPatientsJson-Methode
+            patientsData = @Html.Raw(Model.GetPatientsJson());
+            console.log('Patientendaten geladen:', patientsData);
+        } catch (error) {
+            console.error('Fehler beim Laden der Patientendaten:', error);
+            patientsData = [];
+        }
+    });
+
+    function showPatientDetails(patientId, name, email, bloodtype, sex) {
+        // Setze grundlegende Patienteninformationen
+        document.getElementById('detailName').textContent = name;
+        document.getElementById('detailEmail').textContent = email;
+        document.getElementById('detailBloodtype').textContent = bloodtype;
+        document.getElementById('detailSex').textContent = sex;
+
+        // Finde Patient-Daten
+        const currentPatient = patientsData.find(p => p.patientId === patientId);
+
+        if (currentPatient) {
+            currentPatientData = currentPatient;            // Organspenden anzeigen
+            renderOrganOffers(currentPatient.organOffers || []);
+
+            // Organanfragen anzeigen
+            renderOrganRequests(currentPatient.organRequests || []);
+
+            // Krankheiten anzeigen
+            renderIllnesses(currentPatient.prevIllnesses || []);
+        } else {
+            console.warn('Patient mit ID ' + patientId + ' nicht gefunden');
+            // Zeige leere Container
+            renderOrganOffers([]);
+            renderOrganRequests([]);
+            renderIllnesses([]);
+        }
+    }
+
+    function renderOrganOffers(offers) {
+        let offersHtml = '';
+        const container = document.getElementById('organOffersContainer');
+
+        if (!container) {
+            console.error('organOffersContainer nicht gefunden');
+            return;
+        }
+
+        if (offers && offers.length > 0) {
+            offersHtml = `
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Klinik</th>
+                                <th>Organ</th>
+                                <th>Hinzugefügt</th>
+                                <th>Status</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            offers.forEach(offer => {
+                const addedDate = new Date(offer.addedDate).toLocaleDateString('de-DE');
+                const statusBadge = offer.isActive
+                    ? '<span class="badge bg-success">Aktiv</span>'
+                    : '<span class="badge bg-secondary">Entfernt</span>';
+
+                const actionButton = offer.isActive
+                    ? `<button type="button" class="btn btn-danger btn-sm" onclick="prepareRemoveOffer(${offer.id}, '${escapeHtml(offer.clinicName)} - ${escapeHtml(offer.organType)}')">Entfernen</button>`
+                    : '';
+
+                offersHtml += `
+                    <tr>
+                        <td>${escapeHtml(offer.clinicName)}</td>
+                        <td>${escapeHtml(offer.organType)}</td>
+                        <td>${addedDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButton}</td>
+                    </tr>`;
+            });
+
+            offersHtml += `
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            offersHtml = '<p class="text-muted">Keine Organspenden vorhanden.</p>';
+        }
+
+        container.innerHTML = offersHtml;
+    }
+
+    function renderOrganRequests(requests) {
+        let requestsHtml = '';
+        const container = document.getElementById('organRequestsContainer');
+
+        if (!container) {
+            console.error('organRequestsContainer nicht gefunden');
+            return;
+        }
+
+        if (requests && requests.length > 0) {
+            requestsHtml = `
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Klinik</th>
+                                <th>Organ</th>
+                                <th>Hinzugefügt</th>
+                                <th>Status</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;            requests.forEach(request => {
+                const addedDate = new Date(request.addedDate).toLocaleDateString('de-DE');
+                let statusBadge = request.isActive
+                    ? '<span class="badge bg-primary">Aktiv</span>'
+                    : '<span class="badge bg-secondary">Entfernt</span>';
+
+                if (request.hasMatch && request.isActive) {
+                    statusBadge += ' <span class="badge bg-warning">Match</span>';
+                }
+
+                let actionButton = '';
+                if (request.isActive) {
+                    actionButton = `<button type="button" class="btn btn-danger btn-sm me-1" onclick="prepareRemoveRequest(${request.id}, '${escapeHtml(request.clinicName)} - ${escapeHtml(request.organType)}')">Entfernen</button>`;
+                    
+                    // Füge Button für gematchte Offer hinzu
+                    if (request.hasMatch && request.matchedOffer) {
+                        actionButton += `<button type="button" class="btn btn-success btn-sm" onclick="showMatchedOffer(${request.id})"><i class="fas fa-eye"></i> Match</button>`;
+                    }
+                }
+
+                requestsHtml += `
+                    <tr>
+                        <td>${escapeHtml(request.clinicName)}</td>
+                        <td>${escapeHtml(request.organType)}</td>
+                        <td>${addedDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButton}</td>
+                    </tr>`;
+            });
+
+            requestsHtml += `
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            requestsHtml = '<p class="text-muted">Keine Organanfragen vorhanden.</p>';
+        }        container.innerHTML = requestsHtml;
+    }
+
+    function renderIllnesses(illnesses) {
+        let illnessesHtml = '';
+        const container = document.getElementById('illnessesContainer');
+
+        if (!container) {
+            console.error('illnessesContainer nicht gefunden');
+            return;
+        }
+
+        if (illnesses && illnesses.length > 0) {
+            illnessesHtml = `
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Krankheit</th>
+                                <th>Datum</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            illnesses.forEach(illness => {
+                const date = new Date(illness.date).toLocaleDateString('de-DE');
+                illnessesHtml += `
+                    <tr>
+                        <td>${escapeHtml(illness.illnessLabel)}</td>
+                        <td>${date}</td>
+                    </tr>`;
+            });
+
+            illnessesHtml += `
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            illnessesHtml = '<p class="text-muted">Keine Vorerkrankungen vorhanden.</p>';
+        }
+
+        container.innerHTML = illnessesHtml;
+    }
+
+    // Hilfsfunktion zum Escaping von HTML-Zeichen
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function prepareAddOffer(patientId, patientName) {
+        const offerPatientIdField = document.getElementById('offerPatientId');
+        const offerPatientNameField = document.getElementById('offerPatientName');
+
+        if (offerPatientIdField) {
+            offerPatientIdField.value = patientId;
+        }
+        if (offerPatientNameField) {
+            offerPatientNameField.textContent = patientName;
+        }
+    }
+
+    function prepareAddRequest(patientId, patientName) {
+        const requestPatientIdField = document.getElementById('requestPatientId');
+        const requestPatientNameField = document.getElementById('requestPatientName');
+
+        if (requestPatientIdField) {
+            requestPatientIdField.value = patientId;
+        }
+        if (requestPatientNameField) {
+            requestPatientNameField.textContent = patientName;
+        }
+    }
+
+    function prepareRemoveOffer(offerId, details) {
+        const removeOfferIdField = document.getElementById('removeOfferIdField');
+        const removeOfferDetails = document.getElementById('removeOfferDetails');
+
+        if (removeOfferIdField) {
+            removeOfferIdField.value = offerId;
+        }
+        if (removeOfferDetails) {
+            removeOfferDetails.textContent = details;
+        }
+
+        const removeModal = new bootstrap.Modal(document.getElementById('removeOfferModal'));
+        removeModal.show();
+    }
+
+    function prepareRemoveRequest(requestId, details) {
+        const removeRequestIdField = document.getElementById('removeRequestIdField');
+        const removeRequestDetails = document.getElementById('removeRequestDetails');
+
+        if (removeRequestIdField) {
+            removeRequestIdField.value = requestId;
+        }
+        if (removeRequestDetails) {
+            removeRequestDetails.textContent = details;
+        }
+
+        const removeModal = new bootstrap.Modal(document.getElementById('removeRequestModal'));
+        removeModal.show();
+    }    function editPatient(id, firstname, lastname, email, patientId, bloodtypeId, sexId) {
+        const editPatientIdField = document.getElementById('editPatientIdField');
+        const editPatientFirstname = document.getElementById('editPatientFirstname');
+        const editPatientLastname = document.getElementById('editPatientLastname');
+        const editPatientEmail = document.getElementById('editPatientEmail');
+        const bloodtypeSelect = document.getElementById('editPatientBloodtype');
+        const sexSelect = document.getElementById('editPatientSex');
+
+        if (editPatientIdField) editPatientIdField.value = id;
+        if (editPatientFirstname) editPatientFirstname.value = firstname;
+        if (editPatientLastname) editPatientLastname.value = lastname;
+        if (editPatientEmail) editPatientEmail.value = email;
+
+        // Setze Blutgruppe
+        if (bloodtypeSelect) {
+            bloodtypeSelect.value = bloodtypeId;
+        }
+
+        // Setze Geschlecht
+        if (sexSelect) {
+            sexSelect.value = sexId;
+        }
+
+        // Krankheiten für den Patienten laden
+        const patientData = patientsData.find(p => p.patientId === id);
+        if (patientData && patientData.prevIllnesses) {
+            const illnesses = patientData.prevIllnesses;
+            const illnessListDiv = document.getElementById('editPatientIllnessList');
+            illnessListDiv.innerHTML = '';
+
+            illnesses.forEach(illness => {
+                const date = new Date(illness.date).toLocaleDateString('de-DE');
+                const illnessHtml = `
+                    <div class="d-flex justify-content-between align-items-center mb-2" data-illness-id="${illness.illnessId}">
+                        <div>
+                            <strong>${escapeHtml(illness.illnessLabel)}</strong> - ${date}
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeIllnessFromEdit('${illness.illnessId}', this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+
+                illnessListDiv.insertAdjacentHTML('beforeend', illnessHtml);
+            });
+        } else {
+            // Leere die Krankheitsliste wenn keine Daten vorhanden sind
+            const illnessListDiv = document.getElementById('editPatientIllnessList');
+            if (illnessListDiv) {
+                illnessListDiv.innerHTML = '<p class="text-muted">Keine Vorerkrankungen vorhanden.</p>';
+            }
+        }
+        
+        // Aktuelle Krankheiten-IDs in verstecktes Feld setzen
+        updateEditPatientIllnessIds();
+    }    function deletePatient(id, fullName) {
+        const deletePatientIdField = document.getElementById('deletePatientIdField');
+        const deletePatientName = document.getElementById('deletePatientName');
+
+        if (deletePatientIdField) {
+            deletePatientIdField.value = id;
+        }
+        if (deletePatientName) {
+            deletePatientName.textContent = fullName;
+        }    }
+
+    // Neue Hilfsfunktion zum Aktualisieren der Illness IDs für das Edit-Modal
+    function updateEditPatientIllnessIds() {
+        const illnessListDiv = document.getElementById('editPatientIllnessList');
+        const existingInputs = illnessListDiv.querySelectorAll('input[name="EditPatientIllnessIds"]');
+        
+        // Entferne alle bestehenden versteckten Inputs
+        existingInputs.forEach(input => input.remove());
+        
+        // Sammle alle aktuell sichtbaren Krankheiten-IDs
+        const illnessElements = Array.from(illnessListDiv.children).filter(child => 
+            child.style.display !== 'none' && child.hasAttribute('data-illness-id') && !child.querySelector('p.text-muted')
+        );
+        
+        illnessElements.forEach(element => {
+            const illnessId = element.getAttribute('data-illness-id');
+            if (illnessId && illnessId !== '' && illnessId !== 'undefined') {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'EditPatientIllnessIds';
+                hiddenInput.value = illnessId;
+                element.appendChild(hiddenInput);
+            }
+        });
+    }    function removeIllnessFromEdit(illnessId, button) {
+        // Entfernt das Krankheitselement aus der Anzeige
+        const illnessElement = button.closest('.d-flex');
+        if (illnessElement) {
+            illnessElement.remove();
+
+            // Prüfe ob noch Krankheiten vorhanden sind
+            const illnessListDiv = document.getElementById('editPatientIllnessList');
+            const visibleItems = Array.from(illnessListDiv.children).filter(child => 
+                child.style.display !== 'none' && !child.querySelector('p.text-muted')
+            );
+            
+            if (visibleItems.length === 0) {
+                illnessListDiv.innerHTML = '<p class="text-muted">Keine Vorerkrankungen vorhanden.</p>';
+            }
+            
+            // Aktualisiere die versteckten Input-Felder
+            updateEditPatientIllnessIds();
+        }    }
+
+    // Globale Variable für den aktuellen Modus (new/edit)
+    let currentIllnessMode = '';function openAddIllnessModal(mode) {
+        currentIllnessMode = mode;
+        
+        // Felder zurücksetzen
+        document.getElementById('modalIllnessSelect').value = '';
+        document.getElementById('modalIllnessDate').value = '';
+        
+        // Modal öffnen
+        const modalElement = document.getElementById('addIllnessModal');
+        modalElement.style.zIndex = '1056';
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
+    function addIllnessFromModal() {
+        const illnessSelect = document.getElementById('modalIllnessSelect');
+        const illnessDate = document.getElementById('modalIllnessDate');
+        
+        const illnessId = illnessSelect.value;
+        const illnessLabel = illnessSelect.options[illnessSelect.selectedIndex].text;
+        const dateValue = illnessDate.value;
+
+        if (!illnessId || !dateValue) {
+            alert('Bitte wählen Sie eine Krankheit und ein Datum aus.');
+            return;
+        }
+
+        if (currentIllnessMode === 'new') {
+            addIllnessToNew(illnessId, illnessLabel, dateValue);
+        } else if (currentIllnessMode === 'edit') {
+            addIllnessToEdit(illnessId, illnessLabel, dateValue);
+        }
+
+        // Modal schließen
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addIllnessModal'));
+        modal.hide();
+    }
+
+    function addIllnessToNew(illnessId, illnessLabel, dateValue) {
+        const illnessListDiv = document.getElementById('newPatientIllnessList');
+        
+        // Prüfe ob die Krankheit bereits vorhanden ist
+        const existingIllness = Array.from(illnessListDiv.children).find(child => 
+            child.getAttribute('data-illness-id') === illnessId
+        );
+
+        if (existingIllness) {
+            alert('Diese Krankheit ist bereits für den Patienten erfasst.');
+            return;
+        }
+
+        // Entferne "Keine Vorerkrankungen" Text falls vorhanden
+        if (illnessListDiv.innerHTML.includes('Keine Vorerkrankungen vorhanden')) {
+            illnessListDiv.innerHTML = '';
+        }
+
+        const date = new Date(dateValue);
+        const formattedDate = date.toLocaleDateString('de-DE');
+        
+        // Temporäre ID für neue Krankheiten
+        const tempId = -Date.now();
+
+        const illnessHtml = `
+            <div class="d-flex justify-content-between align-items-center mb-2" data-illness-id="${illnessId}">
+                <div>
+                    <strong>${escapeHtml(illnessLabel)}</strong> - ${formattedDate}
+                    <input type="hidden" name="NewPatientIllnessIds" value="${illnessId}" />
+                    <input type="hidden" name="NewPatientIllnessDates" value="${dateValue}" />
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeIllnessFromNew('${illnessId}', this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>`;
+
+        illnessListDiv.insertAdjacentHTML('beforeend', illnessHtml);
+    }    function addIllnessToEdit(illnessId, illnessLabel, dateValue) {
+        const illnessListDiv = document.getElementById('editPatientIllnessList');
+        
+        // Prüfe ob die Krankheit bereits vorhanden ist
+        const existingIllness = Array.from(illnessListDiv.children).find(child => 
+            child.getAttribute('data-illness-id') === illnessId
+        );
+
+        if (existingIllness) {
+            alert('Diese Krankheit ist bereits für den Patienten erfasst.');
+            return;
+        }
+
+        // Entferne "Keine Vorerkrankungen" Text falls vorhanden
+        if (illnessListDiv.innerHTML.includes('Keine Vorerkrankungen vorhanden')) {
+            illnessListDiv.innerHTML = '';
+        }
+
+        const date = new Date(dateValue);
+        const formattedDate = date.toLocaleDateString('de-DE');
+
+        const illnessHtml = `
+            <div class="d-flex justify-content-between align-items-center mb-2" data-illness-id="${illnessId}">
+                <div>
+                    <strong>${escapeHtml(illnessLabel)}</strong> - ${formattedDate}
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeIllnessFromEdit('${illnessId}', this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>`;
+
+        illnessListDiv.insertAdjacentHTML('beforeend', illnessHtml);
+        
+        // Aktualisiere die versteckten Input-Felder
+        updateEditPatientIllnessIds();
+    }
+
+    function removeIllnessFromNew(illnessId, button) {
+        const illnessElement = button.closest('.d-flex');
+        if (illnessElement) {
+            illnessElement.remove();
+
+            // Prüfe ob noch Krankheiten vorhanden sind
+            const illnessListDiv = document.getElementById('newPatientIllnessList');
+            if (illnessListDiv.children.length === 0) {
+                illnessListDiv.innerHTML = '<p class="text-muted">Keine Vorerkrankungen vorhanden.</p>';
+            }
+        }
+    }    function addIllnessFromModal() {
+        if (currentIllnessMode === 'new') {
+            addIllnessForNewPatient();
+        } else if (currentIllnessMode === 'edit') {
+            addIllnessForExistingPatient();
+        }
+    }
+
+    function addIllnessForNewPatient() {
+        const illnessSelect = document.getElementById('modalIllnessSelect');
+        const illnessDate = document.getElementById('modalIllnessDate');
+        
+        const illnessId = illnessSelect.value;
+        const illnessLabel = illnessSelect.options[illnessSelect.selectedIndex].text;
+        const dateValue = illnessDate.value;
+
+        if (!illnessId || !dateValue) {
+            alert('Bitte wählen Sie eine Krankheit und ein Datum aus.');
+            return;
+        }
+
+        addIllnessToNew(illnessId, illnessLabel, dateValue);
+
+        // Modal schließen
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addIllnessModal'));
+        if (modal) {
+            modal.hide();
+        }
+
+        // Auswahl zurücksetzen
+        illnessSelect.value = '';
+        illnessDate.value = '';
+    }
+
+    function addIllnessForExistingPatient() {
+        const illnessSelect = document.getElementById('modalIllnessSelect');
+        const illnessDate = document.getElementById('modalIllnessDate');
+        const editPatientIdField = document.getElementById('editPatientIdField');
+
+        const illnessId = illnessSelect.value;
+        const illnessLabel = illnessSelect.options[illnessSelect.selectedIndex].text;
+        const dateValue = illnessDate.value;
+        const patientId = editPatientIdField.value;
+
+        if (!illnessId || !dateValue) {
+            alert('Bitte wählen Sie eine Krankheit und ein Datum aus.');
+            return;
+        }
+
+        if (!patientId) {
+            alert('Fehler: Patienten-ID nicht gefunden.');
+            return;
+        }
+
+        addIllnessToEdit(illnessId, illnessLabel, dateValue);
+
+        // Modal schließen
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addIllnessModal'));
+        if (modal) {
+            modal.hide();
+        }
+
+        // Auswahl zurücksetzen
+        illnessSelect.value = '';
+        illnessDate.value = '';
+    }
+
+    // Funktion zum Anzeigen der gematchten Offer
+    function showMatchedOffer(requestId) {
+        if (!currentPatientData || !currentPatientData.organRequests) {
+            console.error('Keine Patientendaten verfügbar');
+            return;
+        }
+
+        // Finde die entsprechende Request
+        const request = currentPatientData.organRequests.find(r => r.id === requestId);
+        if (!request || !request.matchedOffer) {
+            console.error('Gematchte Offer nicht gefunden für Request ID:', requestId);
+            return;
+        }
+
+        const matchedOffer = request.matchedOffer;
+
+        // Befülle Modal mit Daten der gematchten Offer
+        document.getElementById('matchedOfferOrganType').textContent = matchedOffer.organType;
+        document.getElementById('matchedOfferClinicName').textContent = matchedOffer.clinicName;
+        document.getElementById('matchedOfferRecipientName').textContent = matchedOffer.recipientName;
+        document.getElementById('matchedOfferAddedDate').textContent = new Date(matchedOffer.addedDate).toLocaleDateString('de-DE');
+        
+        const offerStatusElement = document.getElementById('matchedOfferStatus');
+        if (matchedOffer.isActive) {
+            offerStatusElement.className = 'badge bg-success';
+            offerStatusElement.textContent = 'Aktiv';
+        } else {
+            offerStatusElement.className = 'badge bg-secondary';
+            offerStatusElement.textContent = 'Entfernt';
+        }
+
+        // Befülle Modal mit Daten der Request
+        document.getElementById('matchedRequestOrganType').textContent = request.organType;
+        document.getElementById('matchedRequestClinicName').textContent = request.clinicName;
+        document.getElementById('matchedRequestAddedDate').textContent = new Date(request.addedDate).toLocaleDateString('de-DE');
+        
+        const requestStatusElement = document.getElementById('matchedRequestStatus');
+        if (request.isActive) {
+            requestStatusElement.className = 'badge bg-primary';
+            requestStatusElement.textContent = 'Aktiv';
+        } else {
+            requestStatusElement.className = 'badge bg-secondary';
+            requestStatusElement.textContent = 'Entfernt';
+        }
+
+        // Öffne das Modal
+        const modal = new bootstrap.Modal(document.getElementById('matchedOfferModal'));
+        modal.show();
+    }
+
+    // Funktion für Transplantation durchführen
+    function proceedWithTransplant() {
+        // Hier würde normalerweise die Transplantation verarbeitet werden
+        alert('Transplantation würde jetzt eingeleitet werden. Dies ist eine Prototyp-Funktion.');
+        
+        // Modal schließen
+        const modal = bootstrap.Modal.getInstance(document.getElementById('matchedOfferModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+</script>
+
+<!-- Modal für neuen Patienten erstellen -->
+<div class="modal fade" id="createPatientModal" tabindex="-1" aria-labelledby="createPatientModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPatientModalLabel">Neuen Patienten erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="CreatePatient">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPatientFirstname" class="form-label">Vorname</label>
+                                <input type="text" class="form-control" id="newPatientFirstname"
+                                    asp-for="NewPatientFirstname" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPatientLastname" class="form-label">Nachname</label>
+                                <input type="text" class="form-control" id="newPatientLastname"
+                                    asp-for="NewPatientLastname" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPatientEmail" class="form-label">E-Mail</label>
+                        <input type="email" class="form-control" id="newPatientEmail" asp-for="NewPatientEmail"
+                            required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPatientBloodtype" class="form-label">Blutgruppe</label>
+                                <select class="form-select" id="newPatientBloodtype" asp-for="NewPatientBloodtype"
+                                    required>
+                                    <option value="">Bitte wählen...</option>
+                                    @foreach (var bloodtype in Model.Bloodtypes)
+                                    {
+                                        <option value="@bloodtype.Id">@bloodtype.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPatientSex" class="form-label">Geschlecht</label>
+                                <select class="form-select" id="newPatientSex" asp-for="NewPatientSex" required>
+                                    <option value="">Bitte wählen...</option>
+                                    @foreach (var sex in Model.Sexes)
+                                    {
+                                        <option value="@sex.Id">@sex.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>                    <!-- Krankheiten verwalten -->
+                    <div class="mb-3">
+                        <label class="form-label">Vorerkrankungen verwalten</label>
+                        <div class="border p-3">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div id="newPatientIllnessList">
+                                        <p class="text-muted">Keine Vorerkrankungen vorhanden.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="openAddIllnessModal('new')">
+                                            <i class="fas fa-plus"></i> Krankheit hinzufügen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Patient erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Patienten bearbeiten -->
+<div class="modal fade" id="editPatientModal" tabindex="-1" aria-labelledby="editPatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPatientModalLabel">Patient bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="EditPatient">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="EditPatientId" id="editPatientIdField" />
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editPatientFirstname" class="form-label">Vorname</label>
+                                <input type="text" class="form-control" id="editPatientFirstname"
+                                    asp-for="EditPatientFirstname" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editPatientLastname" class="form-label">Nachname</label>
+                                <input type="text" class="form-control" id="editPatientLastname"
+                                    asp-for="EditPatientLastname" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPatientEmail" class="form-label">E-Mail</label>
+                        <input type="email" class="form-control" id="editPatientEmail" asp-for="EditPatientEmail"
+                            required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editPatientBloodtype" class="form-label">Blutgruppe</label>
+                                <select class="form-select" id="editPatientBloodtype" asp-for="EditPatientBloodtype"
+                                    required>
+                                    <option value="">Bitte wählen...</option>
+                                    @foreach (var bloodtype in Model.Bloodtypes)
+                                    {
+                                        <option value="@bloodtype.Id">@bloodtype.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">                            <div class="mb-3">
+                                <label for="editPatientSex" class="form-label">Geschlecht</label>
+                                <select class="form-select" id="editPatientSex" asp-for="EditPatientSex" required>
+                                    <option value="">Bitte wählen...</option>
+                                    @foreach (var sex in Model.Sexes)
+                                    {
+                                        <option value="@sex.Id">@sex.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Krankheiten verwalten -->
+                    <div class="mb-3">
+                        <label class="form-label">Vorerkrankungen verwalten</label>
+                        <div class="border p-3">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div id="editPatientIllnessList">
+                                        <!-- Wird dynamisch mit den bestehenden Krankheiten befüllt -->
+                                    </div>
+                                </div>                                <div class="col-md-4">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="openAddIllnessModal('edit')">
+                                            <i class="fas fa-plus"></i> Krankheit hinzufügen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Patienten löschen -->
+<div class="modal fade" id="deletePatientModal" tabindex="-1" aria-labelledby="deletePatientModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePatientModalLabel">Patient löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="post" asp-page-handler="DeletePatient">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="DeletePatientId" id="deletePatientIdField" />
+                <div class="modal-body">
+                    <p>Sind Sie sicher, dass Sie den Patienten <strong id="deletePatientName"></strong> löschen möchten?
+                    </p>
+                    <p class="text-danger">Diese Aktion kann nicht rückgängig gemacht werden und entfernt auch alle
+                        zugehörigen Organspenden und Organanfragen.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

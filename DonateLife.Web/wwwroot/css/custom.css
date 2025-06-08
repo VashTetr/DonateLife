@@ -7,7 +7,6 @@
     top: 20px; /* Abstand von oben */
     left: 50%; /* Mitte des Bildschirms */
     transform: translateX(-50%); /* Exakte Zentrierung */
-    z-index: 1050; /* Über allen anderen Elementen */
     width: auto; /* Automatische Breite */
     max-width: 90%; /* Optional: maximale Breite */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: leichter Schatten */
